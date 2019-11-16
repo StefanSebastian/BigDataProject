@@ -31,6 +31,7 @@ public class Main {
         }).reduce((integer, integer2) -> integer + integer2);
 
         System.out.println("Pi is roughly " + 4.0 * count / n);
+        System.out.println("Program finished");
 
         spark.stop();
     }
