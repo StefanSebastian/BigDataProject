@@ -96,9 +96,9 @@ public class Datagen {
             try {
                 writer.write(System.currentTimeMillis() + ";" +
                         String.format("%.3f", LisOfVariables.get(0)) + ";" +
-                        String.format("%.3f", LisOfVariables.get(1)) + ";" +
-                        String.format("%.3f", LisOfVariables.get(2)) + ";" +
-                        String.format("%.3f", LisOfVariables.get(3)) + ";" +
+//                        String.format("%.3f", LisOfVariables.get(1)) + ";" +
+//                        String.format("%.3f", LisOfVariables.get(2)) + ";" +
+//                        String.format("%.3f", LisOfVariables.get(3)) + ";" +
                         String.format("%.3f", LisOfVariables.get(4)) + "\n");
                 writer.flush();
 
