@@ -64,4 +64,16 @@ public class DroneStatus {
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
+
+    @Override
+    public String toString() {
+        return "DroneStatus{" +
+                "partId='" + partId + '\'' +
+                ", batchId='" + batchId + '\'' +
+                ", timestamp=" + timestamp +
+                ", altitude=" + altitude +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                '}';
+    }
 }
