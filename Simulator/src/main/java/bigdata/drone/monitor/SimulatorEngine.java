@@ -1,7 +1,10 @@
 package bigdata.drone.monitor;
 
 import bigdata.drone.monitor.model.DroneStatus;
+import bigdata.drone.monitor.model.ErrorCode;
+import bigdata.drone.monitor.model.ErrorOccurence;
 import bigdata.drone.monitor.repository.DroneStatusRepository;
+import bigdata.drone.monitor.repository.ErrorOccurenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +22,16 @@ public class SimulatorEngine {
 
     private Logger logger = LoggerFactory.getLogger(SimulatorEngine.class);
 
-    private static final int ID_SIZE = 10;
-    private static final int BATCH_ID_SIZE = 7;
-    private static final double DEVICE_FAILURE_CHANCE = 0.01;
+    private Random random = new Random();
+
+    @Autowired
+    private DroneStatusRepository droneStatusRepository;
+
+    @Autowired
+    private ErrorOccurenceRepository errorOccurenceRepository;
+
+    @Autowired
+    private Config config;
 
     private long measurementCounter = 1L;
 
@@ -31,11 +41,6 @@ public class SimulatorEngine {
     private double altitude = 0;
     private double latitude;
     private double longitude;
-
-    private Random random = new Random();
-
-    @Autowired
-    private DroneStatusRepository droneStatusRepository;
 
     @PostConstruct
     private void init() {
@@ -59,9 +64,17 @@ public class SimulatorEngine {
         logger.info("Measurement : " + measurementCounter);
 
         DroneStatus status = new DroneStatus();
-        status.setPartId(buildStringId(measurementCounter, ID_SIZE));
-        status.setBatchId(buildStringId(flightCounter, BATCH_ID_SIZE));
+        status.setPartId(buildStringId(measurementCounter, config.getIdLen()));
+        status.setBatchId(buildStringId(flightCounter, config.getBatchIdLen()));
         status.setTimestamp(System.currentTimeMillis());
+        double new_altitude = getAltitude();
+        if (new_altitude < config.getAltitudeLowerBound() ||
+                new_altitude > config.getAltitudeUpperBound()) {
+            ErrorOccurence errorOccurence = new ErrorOccurence();
+            errorOccurence.setCode(ErrorCode.ALTITUDE_OUTSIDE_LIMITS);
+            errorOccurence.setPartId(status.getPartId());
+            errorOccurenceRepository.save(errorOccurence);
+        }
         status.setAltitude(getAltitude());
 
         droneStatusRepository.save(status);
@@ -82,7 +95,7 @@ public class SimulatorEngine {
 
     private double getAltitude() {
         double deviceFailure = random.nextDouble();
-        if (deviceFailure < DEVICE_FAILURE_CHANCE) {
+        if (deviceFailure < config.getDeviceFailureChance()) {
             return -1;
         }
 
@@ -98,7 +111,7 @@ public class SimulatorEngine {
             if (random.nextDouble() > 0.1 && progress < 0) {
                 progress = -progress;
             }
-        } else if (altitude > 121) { // over legal limit try to descend
+        } else if (altitude > config.getAltitudeUpperBound()) { // over legal limit try to descend
             if (random.nextDouble() > 0.1 && progress > 0) {
                 progress = -progress;
             }
