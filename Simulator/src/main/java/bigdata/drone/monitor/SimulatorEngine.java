@@ -33,8 +33,10 @@ public class SimulatorEngine {
     @Autowired
     private Config config;
 
+    // tracks measurements ; used for id
     private long measurementCounter = 1L;
 
+    // tracks flights ; used for batch id
     private long flightCounter = 1L;
 
     // track drone position
@@ -67,6 +69,7 @@ public class SimulatorEngine {
         status.setPartId(buildStringId(measurementCounter, config.getIdLen()));
         status.setBatchId(buildStringId(flightCounter, config.getBatchIdLen()));
         status.setTimestamp(System.currentTimeMillis());
+
         double new_altitude = getAltitude();
         if (new_altitude < config.getAltitudeLowerBound() ||
                 new_altitude > config.getAltitudeUpperBound()) {
@@ -82,16 +85,15 @@ public class SimulatorEngine {
         measurementCounter += 1;
     }
 
+    /**
+     * Direction for altitude changes
+     */
     enum Direction {
         DESCEND, ASCEND, HOVER
     }
 
+    // in the beginning the drone ascends
     private Direction direction = Direction.ASCEND;
-
-    private <T extends Enum<?>> T randomEnum(Class<T> clazz){
-        int x = random.nextInt(clazz.getEnumConstants().length);
-        return clazz.getEnumConstants()[x];
-    }
 
     private double getAltitude() {
         double deviceFailure = random.nextDouble();
@@ -100,8 +102,9 @@ public class SimulatorEngine {
         }
 
         // low chance to change direction
-        if (random.nextDouble() < 0.01){
-            direction = randomEnum(Direction.class);
+        if (random.nextDouble() < config.getDirectionChangeChance()){
+            int idx = random.nextInt(Direction.class.getEnumConstants().length);
+            direction = Direction.class.getEnumConstants()[idx];
             logger.info("Changed vertical direction to " + direction);
         }
 
@@ -121,12 +124,16 @@ public class SimulatorEngine {
             } else if (direction == Direction.DESCEND && progress > 0) {
                 progress = -progress;
             }
+            // on Direction.HOVER don't change progress
         }
 
         altitude += progress;
         return altitude;
     }
 
+    /**
+     * Converts long id to string of given size; fills the space with zeroes
+     */
     private String buildStringId(long id, int size) {
         StringBuilder partIdStr = new StringBuilder();
         partIdStr.append(id);
@@ -139,6 +146,10 @@ public class SimulatorEngine {
         return buffer.toString();
     }
 
+    /**
+     * Parse the string representation of an id ;
+     * removes the zeroes then casts to long
+     */
     private long parseStringId(String idStr){
         int index = 0;
         while (idStr.substring(index, index + 1).equals("0")) {
