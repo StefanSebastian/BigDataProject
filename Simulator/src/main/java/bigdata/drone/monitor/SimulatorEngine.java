@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.sql.Timestamp;
+import java.util.Random;
 
 /**
  * @author stefansebii@gmail.com
@@ -21,10 +21,18 @@ public class SimulatorEngine {
 
     private static final int ID_SIZE = 10;
     private static final int BATCH_ID_SIZE = 7;
+    private static final double DEVICE_FAILURE_CHANCE = 0.01;
 
     private long measurementCounter = 1L;
 
     private long flightCounter = 1L;
+
+    // track drone position
+    private double altitude = 0;
+    private double latitude;
+    private double longitude;
+
+    private Random random = new Random();
 
     @Autowired
     private DroneStatusRepository droneStatusRepository;
@@ -36,25 +44,74 @@ public class SimulatorEngine {
         if (lastStatus == null) {
             measurementCounter = 1L;
             flightCounter = 1L;
+            altitude = 0;
         } else {
             measurementCounter = parseStringId(lastStatus.getPartId()) + 1;
             flightCounter = parseStringId(lastStatus.getBatchId()) + 1;
+            altitude = 0;
         }
         logger.info("Flight counter " + flightCounter);
         logger.info("Measurement counter " + measurementCounter);
     }
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 10)
     public void generateDroneStatus() {
         logger.info("Measurement : " + measurementCounter);
 
         DroneStatus status = new DroneStatus();
         status.setPartId(buildStringId(measurementCounter, ID_SIZE));
         status.setBatchId(buildStringId(flightCounter, BATCH_ID_SIZE));
-        status.setTimestamp(new Timestamp(System.currentTimeMillis()));
+        status.setTimestamp(System.currentTimeMillis());
+        status.setAltitude(getAltitude());
+
         droneStatusRepository.save(status);
 
         measurementCounter += 1;
+    }
+
+    enum Direction {
+        DESCEND, ASCEND, HOVER
+    }
+
+    private Direction direction = Direction.ASCEND;
+
+    private <T extends Enum<?>> T randomEnum(Class<T> clazz){
+        int x = random.nextInt(clazz.getEnumConstants().length);
+        return clazz.getEnumConstants()[x];
+    }
+
+    private double getAltitude() {
+        double deviceFailure = random.nextDouble();
+        if (deviceFailure < DEVICE_FAILURE_CHANCE) {
+            return -1;
+        }
+
+        // low chance to change direction
+        if (random.nextDouble() < 0.01){
+            direction = randomEnum(Direction.class);
+            logger.info("Changed vertical direction to " + direction);
+        }
+
+        // get altitude change from a Gaussian distribution
+        double progress = random.nextGaussian();
+        if (altitude < 50) { // for lower altitude highly favour positive values
+            if (random.nextDouble() > 0.1 && progress < 0) {
+                progress = -progress;
+            }
+        } else if (altitude > 121) { // over legal limit try to descend
+            if (random.nextDouble() > 0.1 && progress > 0) {
+                progress = -progress;
+            }
+        } else { // otherwise follow a direction which changes randomly
+            if (direction == Direction.ASCEND && progress < 0) {
+                progress = -progress;
+            } else if (direction == Direction.DESCEND && progress > 0) {
+                progress = -progress;
+            }
+        }
+
+        altitude += progress;
+        return altitude;
     }
 
     private String buildStringId(long id, int size) {

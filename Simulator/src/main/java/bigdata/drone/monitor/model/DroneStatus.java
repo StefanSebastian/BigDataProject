@@ -2,7 +2,6 @@ package bigdata.drone.monitor.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.sql.Timestamp;
 
 /**
  * @author stefansebii@gmail.com
@@ -12,7 +11,7 @@ public class DroneStatus {
     @Id
     private String partId;
     private String batchId;
-    private Timestamp timestamp;
+    private long timestamp;
     private double altitude;
     private double latitude;
     private double longitude;
@@ -33,11 +32,11 @@ public class DroneStatus {
         this.batchId = batchId;
     }
 
-    public Timestamp getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
 
