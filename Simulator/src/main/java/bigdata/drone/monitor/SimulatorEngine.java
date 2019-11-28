@@ -44,21 +44,46 @@ public class SimulatorEngine {
     private double latitude;
     private double longitude;
 
+    /**
+     * Direction for drone position
+     */
+    enum Cardinal {
+        NORTH, SOUTH, EAST, WEST
+    }
+    private Cardinal cardinal = randomEnum(Cardinal.class);
+
+    /**
+     * Direction for altitude changes
+     */
+    enum Direction {
+        DESCEND, ASCEND, HOVER
+    }
+
+    // in the beginning the drone ascends
+    private Direction direction = Direction.ASCEND;
+
     @PostConstruct
     private void init() {
         DroneStatus lastStatus = droneStatusRepository.findLastStatus();
         logger.info("Last status : " + lastStatus);
-        if (lastStatus == null) {
-            measurementCounter = 1L;
-            flightCounter = 1L;
-            altitude = 0;
-        } else {
-            measurementCounter = parseStringId(lastStatus.getPartId()) + 1;
-            flightCounter = parseStringId(lastStatus.getBatchId()) + 1;
-            altitude = 0;
-        }
+
+        measurementCounter = lastStatus == null ? 1L : parseStringId(lastStatus.getPartId()) + 1;
+        flightCounter = lastStatus == null ? 1L : parseStringId(lastStatus.getBatchId()) + 1;
+        altitude = 0;
+        latitude = getRandInRange(config.getLatitudeLowerBound(), config.getLatitudeUpperBound());
+        longitude = getRandInRange(config.getLongitudeLowerBound(), config.getLongitudeUpperBound());
+
         logger.info("Flight counter " + flightCounter);
         logger.info("Measurement counter " + measurementCounter);
+    }
+
+    private  <T extends Enum<?>> T randomEnum(Class<T> clazz){
+        int x = random.nextInt(clazz.getEnumConstants().length);
+        return clazz.getEnumConstants()[x];
+    }
+
+    private double getRandInRange(double rangeMin, double rangeMax) {
+        return rangeMin + (rangeMax - rangeMin) * random.nextDouble();
     }
 
     @Scheduled(fixedRate = 10)
@@ -71,29 +96,59 @@ public class SimulatorEngine {
         status.setTimestamp(System.currentTimeMillis());
 
         double new_altitude = getAltitude();
-        if (new_altitude < config.getAltitudeLowerBound() ||
-                new_altitude > config.getAltitudeUpperBound()) {
-            ErrorOccurence errorOccurence = new ErrorOccurence();
-            errorOccurence.setCode(ErrorCode.ALTITUDE_OUTSIDE_LIMITS);
-            errorOccurence.setPartId(status.getPartId());
-            errorOccurenceRepository.save(errorOccurence);
-        }
-        status.setAltitude(getAltitude());
+        status.setAltitude(new_altitude);
+
+        updateCoordinates();
+        status.setLatitude(latitude);
+        status.setLongitude(longitude);
 
         droneStatusRepository.save(status);
+
+        ErrorCode errorCode = null;
+        if (new_altitude < config.getAltitudeLowerBound() ||
+                new_altitude > config.getAltitudeUpperBound()) {
+            errorCode = ErrorCode.ALTITUDE_OUTSIDE_LIMITS;
+        }
+        if (latitude < config.getLatitudeLowerBound() ||
+                latitude > config.getLatitudeUpperBound() ||
+                longitude < config.getLongitudeLowerBound() ||
+                longitude > config.getLongitudeUpperBound()){
+            errorCode = errorCode == null ? ErrorCode.POSITION_OUTSIDE_LIMITS : ErrorCode.BOTH_OUTSIDE_LMITS;
+        }
+        if (errorCode != null) {
+            ErrorOccurence errorOccurence = new ErrorOccurence();
+            errorOccurence.setPartId(status.getPartId());
+            errorOccurence.setCode(errorCode);
+            errorOccurenceRepository.save(errorOccurence);
+        }
 
         measurementCounter += 1;
     }
 
-    /**
-     * Direction for altitude changes
-     */
-    enum Direction {
-        DESCEND, ASCEND, HOVER
-    }
+    // return a pair latitude, longitude
+    private void updateCoordinates() {
+        // randomize direction
+        if (random.nextDouble() < config.getCardinalChangeChance()) {
+            cardinal = randomEnum(Cardinal.class);
+            logger.info("Changed cardinal " + cardinal);
+        }
 
-    // in the beginning the drone ascends
-    private Direction direction = Direction.ASCEND;
+        double movement_lat = 0;
+        double movement_long = 0;
+        double movement = getRandInRange(0, config.getDistanceOnCoords());
+        if (cardinal == Cardinal.NORTH) {
+            movement_long = movement;
+        } else if (cardinal == Cardinal.SOUTH) {
+            movement_long = -movement;
+        } else if (cardinal == Cardinal.WEST) {
+            movement_lat = -movement;
+        } else if (cardinal == Cardinal.EAST) {
+            movement_lat = movement;
+        }
+
+        latitude = latitude + movement_lat;
+        longitude = longitude + movement_long;
+    }
 
     private double getAltitude() {
         double deviceFailure = random.nextDouble();
@@ -103,8 +158,7 @@ public class SimulatorEngine {
 
         // low chance to change direction
         if (random.nextDouble() < config.getDirectionChangeChance()){
-            int idx = random.nextInt(Direction.class.getEnumConstants().length);
-            direction = Direction.class.getEnumConstants()[idx];
+            direction = randomEnum(Direction.class);
             logger.info("Changed vertical direction to " + direction);
         }
 

@@ -17,6 +17,63 @@ public class Config {
     private double deviceFailureChance = 0.01;
     private double directionChangeChance = 0.01;
 
+    private double latitudeLowerBound = 22;
+    private double latitudeUpperBound = 26;
+    private double longitudeLowerBound = 43;
+    private double longitudeUpperBound = 47;
+
+    private double cardinalChangeChance = 0.1;
+
+    private double distanceOnCoords = 0.00005;
+
+    public double getDistanceOnCoords() {
+        return distanceOnCoords;
+    }
+
+    public void setDistanceOnCoords(double distanceOnCoords) {
+        this.distanceOnCoords = distanceOnCoords;
+    }
+
+    public double getCardinalChangeChance() {
+        return cardinalChangeChance;
+    }
+
+    public void setCardinalChangeChance(double cardinalChangeChance) {
+        this.cardinalChangeChance = cardinalChangeChance;
+    }
+
+    public double getLatitudeLowerBound() {
+        return latitudeLowerBound;
+    }
+
+    public void setLatitudeLowerBound(double latitudeLowerBound) {
+        this.latitudeLowerBound = latitudeLowerBound;
+    }
+
+    public double getLatitudeUpperBound() {
+        return latitudeUpperBound;
+    }
+
+    public void setLatitudeUpperBound(double latitudeUpperBound) {
+        this.latitudeUpperBound = latitudeUpperBound;
+    }
+
+    public double getLongitudeLowerBound() {
+        return longitudeLowerBound;
+    }
+
+    public void setLongitudeLowerBound(double longitudeLowerBound) {
+        this.longitudeLowerBound = longitudeLowerBound;
+    }
+
+    public double getLongitudeUpperBound() {
+        return longitudeUpperBound;
+    }
+
+    public void setLongitudeUpperBound(double longitudeUpperBound) {
+        this.longitudeUpperBound = longitudeUpperBound;
+    }
+
     public double getAltitudeLowerBound() {
         return altitudeLowerBound;
     }
