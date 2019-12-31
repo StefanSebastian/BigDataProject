@@ -86,7 +86,7 @@ public class SimulatorEngine {
         return rangeMin + (rangeMax - rangeMin) * random.nextDouble();
     }
 
-    @Scheduled(fixedRate = 10)
+    @Scheduled(fixedRate = 1000)
     public void generateDroneStatus() {
         logger.info("Measurement : " + measurementCounter);
 

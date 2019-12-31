@@ -1,0 +1,26 @@
+Simulator generates data into an online mysql database:
+url=jdbc:mysql://remotemysql.com:3306/uf5xGXLgpR
+username=uf5xGXLgpR
+password=id46xBiuhV
+
+online connection : https://remotemysql.com/phpmyadmin/sql.php 
+with the above user/pass combo
+
+This is then imported through a sqoop job created as:
+sqoop job --create job_import_simulator -- import 
+--connect jdbc:mysql://remotemysql.com:3306/uf5xGXLgpR 
+--username uf5xGXLgpR --password-file /team7/pass 
+--table drone_status --target-dir /team7/simulator 
+--incremental append --check-column timestamp --last-value 0
+
+The job imports only newer records, based on timestamp value.
+The output directory is /team7/simulator.
+
+The job can be run manually : sqoop job --exec job_import_simulator
+
+The job has been setup to run every 10mins as a cron job.
+It can be seen using the crontab -l command:
+*/10 * * * * sqoop job --exec job_import_simulator
+
+Results can be seen :
+hdfs dfs -ls /team7/simulator
