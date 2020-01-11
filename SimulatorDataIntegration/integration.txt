@@ -10,11 +10,11 @@ This is then imported through a sqoop job created as:
 sqoop job --create job_import_simulator -- import 
 --connect jdbc:mysql://remotemysql.com:3306/uf5xGXLgpR 
 --username uf5xGXLgpR --password-file /team7/pass 
---table drone_status --target-dir /team7/simulator 
+--table drone_status --target-dir /user/team_7/simulator 
 --incremental append --check-column timestamp --last-value 0
 
 The job imports only newer records, based on timestamp value.
-The output directory is /team7/simulator.
+The output directory is /simulator.
 
 The job can be run manually : sqoop job --exec job_import_simulator
 
@@ -23,4 +23,4 @@ It can be seen using the crontab -l command:
 */10 * * * * sqoop job --exec job_import_simulator
 
 Results can be seen :
-hdfs dfs -ls /team7/simulator
+hdfs dfs -ls /simulator
