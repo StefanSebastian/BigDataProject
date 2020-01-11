@@ -9,6 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Datagen {
 
+    private static final int NR_ROWS_PER_FILE  = 500;
+    private Integer counter = 0;
+    private Integer nrFiles = 1;
+
     private Double humidity_max = null;
     private Double humidity_min = null;
     private Double x_min = null;
@@ -74,14 +78,14 @@ public class Datagen {
     private void openFileAndWrite() {
 
         try {
-            writer = new BufferedWriter(new FileWriter(new File(FilePath), true));
+            writer = new BufferedWriter(new FileWriter(new File(FilePath+ nrFiles +".csv"), true));
             System.out.println("File created/opened!");
 
             generateFirstValues();
             System.out.println("First values generated");
 
             executor.scheduleAtFixedRate(RandomizerRunnable, 0, 200, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(WriterRunnable, 0, 500, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(WriterRunnable, 0, 10, TimeUnit.MILLISECONDS);
 
             System.out.println("Schedulers set");
 
@@ -94,13 +98,26 @@ public class Datagen {
     Runnable WriterRunnable = new Runnable() {
         public void run() {
             try {
+                if(counter == NR_ROWS_PER_FILE){
+                    System.out.println("-------------");
+                    System.out.println("TEST");
+                    System.out.println("------------");
+                    counter = 0;
+                    writer.flush();
+                    writer.close();
+                    nrFiles++;
+                    writer = new BufferedWriter(new FileWriter(new File(FilePath + nrFiles +".csv"), true));
+
+                }
                 writer.write(System.currentTimeMillis() + ";" +
-                        String.format("%.3f", LisOfVariables.get(0)) + ";" +
+                        String.format("%.3f", LisOfVariables.get(3)) + ";" +
 //                        String.format("%.3f", LisOfVariables.get(1)) + ";" +
 //                        String.format("%.3f", LisOfVariables.get(2)) + ";" +
 //                        String.format("%.3f", LisOfVariables.get(3)) + ";" +
                         String.format("%.3f", LisOfVariables.get(4)) + "\n");
                 writer.flush();
+                System.out.println("counter " +counter );
+                counter++;
 
             } catch (Exception ex) {
                 System.out.println("Error on writing to file");
