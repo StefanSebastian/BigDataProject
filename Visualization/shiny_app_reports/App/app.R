@@ -23,14 +23,12 @@ server <- function(input, output) {
                   count(*) as total_measurements
                   FROM drone_status d left join error_occurence e on d.part_id = e.part_id
                   group by batch_id",sep="")
-    print(query)
-    rs = dbSendQuery(storiesDb,query)
+    rs = dbSendQuery(genDb,query)
     dbRows <- dbFetch(rs)
     dbDisconnect(genDb)
 
-    barplot(colSums(db_rows[,c("part_id","code")]),
-            ylab="Total",
-            names.arg = c("part_id", "code"))
+    transformed = transform(dbRows, err_rate = error_occurences/total_measurements)
+    ggplot(data=transformed, aes(x=batch_id, y=err_rate)) + geom_bar(stat="identity")
   })
 }
 
