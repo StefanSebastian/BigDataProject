@@ -1,6 +1,8 @@
 This layer contains data prepared to be presented to business users.
 Data is stored in a Cassandra database running on the cluster.
 
+// TODO humidity , magnetic field strength, batch_id, part_id
+
 Data format : timestamp bigint PRIMARY KEY, latitude double, longitude double, type text
 
 Steps:

@@ -1,24 +1,31 @@
 library(shiny)
 library(RMariaDB)
 library(ggplot2)
+library(shinyjs)
 
-ui <- fluidPage(
-
-  titlePanel("title panel"),
-
-  sidebarLayout(
-    sidebarPanel("sidebar panel"),
-    mainPanel(
-      plotOutput("failure_rate", height = 500),
-      plotOutput("code_histogram", height = 500)
-    )
+ui <- navbarPage("Reporting dashboard",
+  tabPanel("Failure rate per batch", 
+              div(
+                plotOutput("failure_rate"),
+                p("Bar plot displaying ratio of errors over valid measurements for each flight")
+                )
+          ),
+  tabPanel("Error codes histogram", 
+              div(
+                plotOutput("code_histogram"),
+                p("Histogram showing density distribution of error codes"),
+                p("Legend:"),
+                p("0 - No error"),
+                p("1 - Altitude outsite legal limits"),
+                p("2 - Position outsite legal area"),
+                p("3 - Combination of 1 and 2")
+              )
   )
 )
 
-
-
 # Define server logic required to draw a histogram ----
 server <- function(input, output) {
+
   output$code_histogram <- renderPlot({
     genDb <- dbConnect(RMariaDB::MariaDB(), user='uf5xGXLgpR', password='id46xBiuhV', dbname='uf5xGXLgpR', host='remotemysql.com', port=3306)
     query<-paste("SELECT 
@@ -32,7 +39,7 @@ server <- function(input, output) {
     dbDisconnect(genDb)
 
     dbRows = as.numeric(as.character(dbRows$code))
-    bins = c(0, 1, 2, 3)
+    bins = c(0, 1, 2, 3, 4)
     hist(dbRows, main="Error code histogram", xlab="Code", freq=FALSE, breaks=bins, right=FALSE)
   })
 
