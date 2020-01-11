@@ -85,7 +85,7 @@ public class Datagen {
             System.out.println("First values generated");
 
             executor.scheduleAtFixedRate(RandomizerRunnable, 0, 200, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(WriterRunnable, 0, 5, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(WriterRunnable, 0, 10, TimeUnit.MILLISECONDS);
 
             System.out.println("Schedulers set");
 

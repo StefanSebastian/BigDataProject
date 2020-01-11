@@ -19,7 +19,7 @@ public class Main {
         StructType userSchema = new StructType().add("timestamp", "string").add("humidity", "string").add("magnetic", "string");
         Dataset<Row> csv = spark.readStream().option("sep", ";").schema(userSchema).csv("/Users/gritcoandreea/sparkStuff/sensorData");
 
-        StreamingQuery start = csv.writeStream().format("csv").trigger(Trigger.ProcessingTime("60 seconds")).option("checkpointLocation","hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration").option("path","hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration").start();
+        StreamingQuery start = csv.writeStream().format("csv").outputMode("append").trigger(Trigger.ProcessingTime("5 seconds")).option("checkpointLocation","hdfs://10.111.0.250:8020/user/team_7/sparkStreamingFiles").option("path","hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration").start();
         start.awaitTermination();
     }
 }
