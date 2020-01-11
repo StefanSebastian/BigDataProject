@@ -1,11 +1,10 @@
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.spark.sql.streaming.StreamingQuery;
+import org.apache.spark.sql.streaming.Trigger;
+import org.apache.spark.sql.types.StructType;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -17,19 +16,10 @@ public class Main {
 
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        String path = "csvData.csv";
-        JavaRDD<String> lines = jsc.textFile(path);
-//        lines.collect();
+        StructType userSchema = new StructType().add("timestamp", "string").add("humidity", "string").add("magnetic", "string");
+        Dataset<Row> csv = spark.readStream().option("sep", ";").schema(userSchema).csv("/Users/gritcoandreea/sparkStuff/sensorData");
 
-        for(String line:lines.collect()){
-            System.out.println(line);
-        }
-
-        lines.saveAsTextFile("hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration");
-
-
-        System.out.println("Program finished");
-
-        spark.stop();
+        StreamingQuery start = csv.writeStream().format("csv").trigger(Trigger.ProcessingTime("60 seconds")).option("checkpointLocation","hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration").option("path","hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration").start();
+        start.awaitTermination();
     }
 }

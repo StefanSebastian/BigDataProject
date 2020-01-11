@@ -91,3 +91,36 @@ export HADOOP_CONF_DIR=XXX
   //        });
   //
   //        System.out.println("Pi is roughly " + 4.0 * count / n);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //        csv.writeStream().format("console").outputMode(OutputMode.Append()).start();
+
+  //        String path = "csvData.csv";
+  //        JavaRDD<String> lines = jsc.textFile(path);
+  ////        lines.collect();
+  //
+  //        for(String line:lines.collect()){
+  //            System.out.println(line);
+  //        }
+  //
+  //        lines.saveAsTextFile("hdfs://10.111.0.250:8020/user/team_7/sensorDataIntegration");
+  //

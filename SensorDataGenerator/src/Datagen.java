@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Datagen {
 
-    private static final int NR_ROWS_PER_FILE  = 500;
+    private static final int NR_ROWS_PER_FILE  = 100;
     private Integer counter = 0;
     private Integer nrFiles = 1;
 
@@ -85,7 +85,7 @@ public class Datagen {
             System.out.println("First values generated");
 
             executor.scheduleAtFixedRate(RandomizerRunnable, 0, 200, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(WriterRunnable, 0, 10, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(WriterRunnable, 0, 5, TimeUnit.MILLISECONDS);
 
             System.out.println("Schedulers set");
 
@@ -115,7 +115,7 @@ public class Datagen {
 //                        String.format("%.3f", LisOfVariables.get(2)) + ";" +
 //                        String.format("%.3f", LisOfVariables.get(3)) + ";" +
                         String.format("%.3f", LisOfVariables.get(4)) + "\n");
-                writer.flush();
+//                writer.flush();
                 System.out.println("counter " +counter );
                 counter++;
 
