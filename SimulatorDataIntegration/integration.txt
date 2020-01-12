@@ -2,6 +2,7 @@ Simulator generates data into an online mysql database:
 url=jdbc:mysql://remotemysql.com:3306/uf5xGXLgpR
 username=uf5xGXLgpR
 password=id46xBiuhV
+email=lapova1171@wmail1.com
 
 online connection : https://remotemysql.com/phpmyadmin/sql.php 
 with the above user/pass combo
@@ -20,7 +21,7 @@ The job can be run manually : sqoop job --exec job_import_simulator
 
 The job has been setup to run every 10mins as a cron job.
 It can be seen using the crontab -l command:
-*/10 * * * * sqoop job --exec job_import_simulator
+*/3 * * * * sqoop job --exec job_import_simulator
 
 Results can be seen :
 hdfs dfs -ls /simulator
