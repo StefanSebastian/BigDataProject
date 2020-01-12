@@ -1,7 +1,6 @@
 library(shiny)
 library(RMariaDB)
 library(ggplot2)
-library(shinyjs)
 
 ui <- navbarPage("Reporting dashboard",
   tabPanel("Failure rate per batch", 

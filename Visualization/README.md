@@ -16,11 +16,13 @@ Real time dashboard of alerts. Must run in a jupyter notebook
 
 2. dashboard that allows users to create reports over generator data
 
--install R + R Studio
--install shiny : install.packages("shiny")
--open R Studio
--open project from shiny_app_reports
--runApp('App')
+-install R 
+-install packages : 
+* install.packages("shiny")
+* install.packages("ggplot2")
+* install.packages("RMariaDB")
+- update paths in start_reports.bat or start_reports.command
+run previous file
 
 Dashboard generates the following reports :
 - error rate bar plot per drone flight
