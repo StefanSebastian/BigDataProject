@@ -1,0 +1,112 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<p style="text-align: center;"><strong>Humidity level:&nbsp;</strong></p>
+<p id="humlvl" style="text-align: center;"><strong>&nbsp;</strong></p>
+<p style="text-align: center;"><strong>Magnetic field strength:&nbsp;</strong></p>
+<p id="mgnlvl" style="text-align: center;"><strong>:&nbsp;</strong></p>
+<p style="text-align: center;">&nbsp;</p>
+
+
+<div class="wrapper">
+    <p style="text-align: left;"><em>Humidity Graph</em></p>
+    <div id="chart"></div>
+    <script>
+
+        Plotly.plot('chart', [{
+            y: [0],
+            type: 'line'
+        }]);
+
+        var cnt = 0;
+
+        setInterval(function () {
+
+            fetch('http://localhost:8080/data.txt', {mode: 'cors'})
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function (text) {
+
+                    var stringText = text.split(";");
+                    var humidity = stringText[0];
+                    // var magnetic = stringText[1];
+
+                    Plotly.extendTraces('chart', {y: [[humidity]]}, [0]);
+
+                    $("#humlvl").text(humidity);
+
+                    cnt++;
+                    if (cnt > 50) {
+                        Plotly.relayout('chart', {
+                            xaxis: {
+                                range: [0, cnt]
+                            }
+                        });
+                    }
+                    // console.log('Request successful', text);
+                })
+                .catch(function (error) {
+                    console.log('Request failed', error)
+                });
+        }, 1000);
+
+    </script>
+</div>
+
+<div class="wrapper">
+
+    <p style="text-align: left;">
+        <em>Magnetic Field Strength Graph
+        </em>
+    </p>
+    <div id="chartUmiditate"></div>
+    <script>
+        Plotly.plot('chartUmiditate', [{
+            y: [0],
+            type: 'line'
+        }]);
+
+        var cnt2 = 0;
+
+        setInterval(function () {
+
+            fetch('http://localhost:8080/data.txt', {mode: 'cors'})
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function (text) {
+
+                    var stringText = text.split(";");
+                    // var humidity = stringText[0];
+                    var magnetic = stringText[1];
+
+                    Plotly.extendTraces('chartUmiditate', {y: [[magnetic]]}, [0]);
+                    $("#mgnlvl").text(magnetic);
+
+                    cnt++;
+                    if (cnt > 50) {
+                        Plotly.relayout('chartUmiditate', {
+                            xaxis: {
+                                range: [0, cnt]
+                            }
+                        });
+                    }
+                })
+                .catch(function (error) {
+                    console.log('Request failed', error)
+                });
+        }, 1000);
+    </script>
+</div>
+
+</body>
+</html>

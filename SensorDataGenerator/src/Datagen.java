@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
 public class Datagen {
 
     private static final int NR_ROWS_PER_FILE  = 100;
+
+    private static String FilePathForGraphicRep = "C:\\xampp\\tomcat\\webapps\\ROOT\\data.txt";
+
     private Integer counter = 0;
     private Integer nrFiles = 1;
 
@@ -25,9 +28,10 @@ public class Datagen {
 
     List<Double> LisOfVariables = new CopyOnWriteArrayList<>();
 
-
     private BufferedWriter writer = null;
     private static Random randomValue = new Random();
+
+    FileWriter fileWriterGraphicRep = null;
 
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -39,11 +43,25 @@ public class Datagen {
         openFileAndWrite();
     }
 
+
+    public void SendDataToFileForGraph(){
+        try {
+
+            fileWriterGraphicRep = new FileWriter(FilePathForGraphicRep);
+            fileWriterGraphicRep.write(String.format("%.3f", LisOfVariables.get(3)) + ";" + String.format("%.3f", LisOfVariables.get(4)));
+            fileWriterGraphicRep.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
     private void read_prop() {
 
         InputStream inputStream;
 
         try {
+
             Properties prop = new Properties();
             String propFileName = "app.properties";
 
@@ -84,8 +102,9 @@ public class Datagen {
             generateFirstValues();
             System.out.println("First values generated");
 
-            executor.scheduleAtFixedRate(RandomizerRunnable, 0, 200, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(WriterRunnable, 0, 5, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(RandomizerRunnable, 0, 13, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(WriterRunnable, 0, 10, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(GrapDataExportRunnable, 0, 100, TimeUnit.MILLISECONDS);
 
             System.out.println("Schedulers set");
 
@@ -160,6 +179,22 @@ public class Datagen {
         }
     };
 
+
+    Runnable GrapDataExportRunnable = new Runnable() {
+
+        public void run() {
+            try {
+
+                SendDataToFileForGraph();
+            } catch (Exception ex) {
+                System.out.println("Error on data randomizer");
+                System.out.println(ex.getMessage());
+                executor.shutdown();
+                System.exit(1);
+            }
+        }
+    };
+
     // min * (max - min) * rand
     public Double GenerateIncrementalValue() {
         return -1 + (1 - (-1)) * randomValue.nextDouble();
@@ -181,14 +216,26 @@ public class Datagen {
 
     private void changeGenericWithIncremental(Double MinVal, Double MaxVal, Integer index) {
         Double auxVal = GenerateIncrementalValue();
+
         Double ValueVar = LisOfVariables.get(index);
-        if (ValueVar + auxVal > MaxVal)
+
+        if (ValueVar + auxVal > MaxVal){
+
+            if (auxVal < 0)
+                auxVal = auxVal * -1;
+
             ValueVar -= auxVal;
+        }
         else if (ValueVar + auxVal < MinVal) {
+
+            if (auxVal < 0)
+                auxVal = auxVal * -1;
+
             ValueVar += auxVal;
         } else {
             ValueVar += auxVal;
         }
+
         LisOfVariables.set(index, ValueVar);
     }
 
